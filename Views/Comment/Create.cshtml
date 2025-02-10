@@ -1,0 +1,28 @@
+@model NatureHub.Models.Comment
+
+@* Page title *@
+<h2>Add New Comment</h2>
+
+@* Comment submission form *@
+<form asp-action="Create" method="post">
+    @* Hidden field to store the discussion ID *@
+    <input type="hidden" asp-for="DiscussionId" value="@ViewBag.DiscussionId" />
+
+    @* Author name input field *@
+    <div class="form-group mb-3">
+        <label asp-for="AuthorName">Your Name</label>
+        <input asp-for="AuthorName" class="form-control" required />
+    </div>
+
+    @* Comment content textarea *@
+    <div class="form-group mb-3">
+        <label asp-for="Content">Comment</label>
+        <textarea asp-for="Content" class="form-control" rows="5" required></textarea>
+    </div>
+
+    @* Form submission buttons *@
+    <div class="form-group">
+        <input type="submit" value="Post Comment" class="btn btn-primary" />
+        <a asp-controller="Home" asp-action="GetDiscussion" asp-route-id="@ViewBag.DiscussionId" class="btn btn-secondary">Back to Discussion</a>
+    </div>
+</form>

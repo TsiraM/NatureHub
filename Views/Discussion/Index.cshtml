@@ -1,0 +1,50 @@
+@model IEnumerable<NatureHub.Models.Discussion>
+
+@{
+    ViewData["Title"] = "Discussion Threads";
+}
+
+<h1>Discussion Threads</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Thumbnail</th>
+            <th>Title</th>
+            <th>Comments</th>
+            <th>Created On</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.ImageFilename))
+                    {
+                        <img src="~/images/@item.ImageFilename" alt="Discussion Image" class="img-thumbnail" style="max-width: 100px; height: auto;" />
+                    }
+                    else
+                    {
+                        <p>No image</p>
+                    }
+                </td>
+                <td>
+                    <a asp-action="GetDiscussion" asp-route-id="@item.DiscussionId">@item.Title</a>
+                </td>
+                <td>@item.Comments.Count()</td>
+                <td>@item.CreateDate.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.DiscussionId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.DiscussionId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.DiscussionId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,88 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+.wrapper {
+    min-height: 100%;
+    padding-bottom: 60px;
+}
+
+.container {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: white;
+    border-top: 1px solid #ddd;
+}
+
+
+.discussion-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+}
+
+.section-title {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.comment-section {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    margin: 1rem 0;
+}
+
+.discussion-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .discussion-card {
+        flex-wrap: nowrap;
+    }
+
+    .col-md-2 {
+        flex: 0 0 15%;
+        max-width: 15%;
+    }
+
+    .col-md-10 {
+        flex: 0 0 85%;
+        max-width: 85%;
+    }
+}
