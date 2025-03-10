@@ -3,39 +3,53 @@
 @* Main discussion card displaying title, image, and content *@
 <div class="card mb-4">
     <div class="card-body">
-        <h2>@Model.Title</h2>
-        @* Display discussion image if one exists *@
+        <div class="d-flex align-items-center mb-3">
+            @if (!string.IsNullOrEmpty(Model.ApplicationUser?.ImageFilename))
+            {
+                <img src="~/images/@Model.ApplicationUser.ImageFilename" class="rounded-circle me-2" style="width: 40px; height: 40px;" alt="Profile Picture" />
+            }
+            <div>
+                <h2>@Model.Title</h2>
+                <p class="text-muted mb-0">
+                    Posted by <a asp-controller="Profile" asp-action="Index" asp-route-id="@Model.ApplicationUserId">@Model.ApplicationUser?.Name</a>
+                    on @Model.CreateDate.ToString("MM/dd/yyyy HH:mm")
+                </p>
+            </div>
+        </div>
+
         @if (!string.IsNullOrEmpty(Model.ImageFilename))
         {
             <img src="~/images/@Model.ImageFilename" class="img-fluid mb-3" style="max-width: 500px;" alt="Discussion Image" />
         }
         <p>@Model.Content</p>
-        <p class="text-muted">Posted on: @Model.CreateDate.ToString("MM/dd/yyyy HH:mm")</p>
     </div>
 </div>
 
-@* Add new comment button *@
 <div class="mb-3">
     <a asp-controller="Comment" asp-action="Create" asp-route-discussionId="@Model.DiscussionId" class="btn btn-primary">Add New Comment</a>
 </div>
 
-@* Comments section *@
 <h3>Comments</h3>
 @if (Model.Comments.Any())
 {
-    @* Display existing comments in descending order *@
-    foreach (var comment in Model.Comments.OrderByDescending(c => c.CreateDate))
+    @foreach (var comment in Model.Comments.OrderBy(c => c.CreateDate))
     {
         <div class="card mb-2">
             <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    @if (!string.IsNullOrEmpty(comment.ApplicationUser?.ImageFilename))
+                    {
+                        <img src="~/images/@comment.ApplicationUser.ImageFilename" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile Picture" />
+                    }
+                    <a asp-controller="Profile" asp-action="Index" asp-route-id="@comment.ApplicationUserId">@comment.ApplicationUser?.Name</a>
+                    <span class="text-muted ms-2">@comment.CreateDate.ToString("MM/dd/yyyy HH:mm")</span>
+                </div>
                 <p>@comment.Content</p>
-                <p class="text-muted">By @comment.AuthorName on @comment.CreateDate.ToString("MM/dd/yyyy HH:mm")</p>
             </div>
         </div>
     }
 }
 else
 {
-    @* Message displayed when no comments exist *@
     <p>No comments yet. Be the first to comment!</p>
 }

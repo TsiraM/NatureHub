@@ -1,36 +1,37 @@
 @model NatureHub.Models.Discussion
 
-@* Set the page title *@
 @{
     ViewData["Title"] = "Create Discussion";
 }
 
-@* Page heading *@
 <h1>Create a New Discussion</h1>
 
-@* Discussion creation form with file upload support *@
-<form asp-action="Create" method="post" enctype="multipart/form-data">
-    @* Discussion title input field *@
+<form asp-controller="Discussion" asp-action="Create" method="post" enctype="multipart/form-data">
     <div class="form-group mb-3">
         <label asp-for="Title" class="control-label">Title</label>
         <input asp-for="Title" class="form-control" required />
+        <span asp-validation-for="Title" class="text-danger"></span>
     </div>
 
-    @* Discussion content textarea *@
     <div class="form-group mb-3">
         <label asp-for="Content" class="control-label">Content</label>
         <textarea asp-for="Content" class="form-control" rows="5" required></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
     </div>
 
-    @* Image upload field *@
     <div class="form-group mb-3">
         <label class="control-label">Upload Image</label>
         <input type="file" name="imageFile" class="form-control" accept="image/*" />
     </div>
 
-    @* Form submission buttons *@
     <div class="form-group">
         <input type="submit" value="Create Discussion" class="btn btn-primary" />
-        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        <a asp-controller="Discussion" asp-action="Index" class="btn btn-secondary">Back to List</a>
     </div>
 </form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

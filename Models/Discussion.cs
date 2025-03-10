@@ -11,9 +11,10 @@ namespace NatureHub.Models
         public string? ImageFilename { get; set; } = null;
         public DateTime CreateDate { get; set; }
 
-        // Navigation property for comments
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        // Properties for user relationship
+        public string? ApplicationUserId { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
 
-            
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

@@ -8,12 +8,6 @@
     @* Hidden field to store the discussion ID *@
     <input type="hidden" asp-for="DiscussionId" value="@ViewBag.DiscussionId" />
 
-    @* Author name input field *@
-    <div class="form-group mb-3">
-        <label asp-for="AuthorName">Your Name</label>
-        <input asp-for="AuthorName" class="form-control" required />
-    </div>
-
     @* Comment content textarea *@
     <div class="form-group mb-3">
         <label asp-for="Content">Comment</label>

@@ -1,78 +1,120 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using NatureHub.Data;
 using NatureHub.Models;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace NatureHub.Controllers
 {
-    
+    [Authorize]
     public class DiscussionController : Controller
     {
-        // Database context field
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        // Constructor initializes the database context
-        public DiscussionController(ApplicationDbContext context)
+        public DiscussionController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // GET: Returns the view for creating a new discussion
-        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var discussions = await _context.Discussions
+                    .Where(d => d.ApplicationUserId == user.Id)
+                    .Include(d => d.Comments)
+                    .OrderByDescending(d => d.CreateDate)
+                    .ToListAsync();
+                return View(discussions);
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var discussion = await _context.Discussions
+                .Include(d => d.Comments)
+                .Include(d => d.ApplicationUser)
+                .FirstOrDefaultAsync(d => d.DiscussionId == id);
+
+            if (discussion == null)
+            {
+                return NotFound();
+            }
+            return View(discussion);
+        }
+
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Handles the creation of a new discussion with optional image upload
         [HttpPost]
         public async Task<IActionResult> Create(Discussion discussion, IFormFile imageFile)
         {
             if (ModelState.IsValid)
             {
-                // Handle image file upload if present
-                if (imageFile != null && imageFile.Length > 0)
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
                 {
-                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-
-                    // Create directory if it doesn't exist
-                    if (!Directory.Exists(uploadsFolder))
+                    discussion.ApplicationUserId = user.Id;
+                    if (imageFile != null && imageFile.Length > 0)
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(fileStream);
+                        }
+                        discussion.ImageFilename = uniqueFileName;
                     }
-
-                    // Save the image file
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-                    discussion.ImageFilename = uniqueFileName;
+                    discussion.CreateDate = DateTime.Now;
+                    _context.Discussions.Add(discussion);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-
-                // Set creation date and save discussion to database
-                discussion.CreateDate = DateTime.Now;
-                _context.Discussions.Add(discussion);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
             }
             return View(discussion);
         }
 
-        // GET: Retrieves and displays all discussions with their comments
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            var discussions = await _context.Discussions
-                .Include(d => d.Comments)
-                .OrderByDescending(d => d.CreateDate)
-                .ToListAsync();
-            return View(discussions);
+            var discussion = await _context.Discussions.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (discussion == null || user == null || discussion.ApplicationUserId != user.Id)
+            {
+                return Forbid();
+            }
+
+            return View(discussion);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var discussion = await _context.Discussions.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (discussion == null || user == null || discussion.ApplicationUserId != user.Id)
+            {
+                return Forbid();
+            }
+
+            _context.Discussions.Remove(discussion);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

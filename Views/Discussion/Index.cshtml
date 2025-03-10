@@ -7,7 +7,7 @@
 <h1>Discussion Threads</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
+    <a asp-controller="Discussion" asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
 
 <table class="table">
@@ -35,14 +35,14 @@
                     }
                 </td>
                 <td>
-                    <a asp-action="GetDiscussion" asp-route-id="@item.DiscussionId">@item.Title</a>
+                    <a asp-controller="Discussion" asp-action="Details" asp-route-id="@item.DiscussionId">@item.Title</a>
                 </td>
                 <td>@item.Comments.Count()</td>
                 <td>@item.CreateDate.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.DiscussionId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.DiscussionId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.DiscussionId">Delete</a>
+                    <a asp-controller="Discussion" asp-action="Edit" asp-route-id="@item.DiscussionId" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-controller="Discussion" asp-action="Details" asp-route-id="@item.DiscussionId" class="btn btn-info btn-sm">Details</a>
+                    <a asp-controller="Discussion" asp-action="Delete" asp-route-id="@item.DiscussionId" class="btn btn-danger btn-sm">Delete</a>
                 </td>
             </tr>
         }
