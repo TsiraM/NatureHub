@@ -6,7 +6,7 @@ using NatureHub.Models;
 
 namespace NatureHub.Controllers
 {
-    [Authorize]
+    [Authorize] // Restrict access to authenticated users
     public class CommentController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -18,13 +18,7 @@ namespace NatureHub.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult Create(int discussionId)
-        {
-            ViewBag.DiscussionId = discussionId;
-            return View();
-        }
-
-        [HttpPost]
+       
         public async Task<IActionResult> Create(Comment comment)
         {
             if (ModelState.IsValid)
@@ -34,11 +28,23 @@ namespace NatureHub.Controllers
                 {
                     comment.ApplicationUserId = user.Id;
                     comment.CreateDate = DateTime.Now;
+
+                    // Validate DiscussionId before adding the comment
+                    if (comment.DiscussionId == 0)
+                    {
+                        ModelState.AddModelError("", "Invalid discussion.");
+                        return View(comment);
+                    }
+
                     _context.Comments.Add(comment);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction("GetDiscussion", "Home", new { id = comment.DiscussionId });
+
+                    // Redirect to the discussion details page after saving
+                    return RedirectToAction("Details", "Discussion", new { id = comment.DiscussionId });
                 }
             }
+
+            // Return view with validation errors if model state is invalid
             return View(comment);
         }
     }

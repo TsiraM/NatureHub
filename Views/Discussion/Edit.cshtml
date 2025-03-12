@@ -6,40 +6,53 @@
 
 <h1>Edit Discussion</h1>
 
+<!-- Check if the user is the owner of the discussion before allowing editing -->
 @if (User.Identity?.Name == Model.ApplicationUser?.UserName)
 {
     <div class="row">
         <div class="col-md-8">
+            <!-- Form for editing the discussion -->
             <form asp-controller="Discussion" asp-action="Edit" method="post" enctype="multipart/form-data">
+
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <!-- Hidden fields to maintain original data -->
                 <input type="hidden" asp-for="DiscussionId" />
                 <input type="hidden" asp-for="CreateDate" />
                 <input type="hidden" asp-for="ApplicationUserId" />
 
+                <!-- Title input field -->
                 <div class="form-group mb-3">
                     <label asp-for="Title" class="control-label"></label>
                     <input asp-for="Title" class="form-control" />
+                  
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
+                <!-- Content textarea for editing the discussion's content -->
                 <div class="form-group mb-3">
                     <label asp-for="Content" class="control-label"></label>
                     <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+                    
                     <span asp-validation-for="Content" class="text-danger"></span>
                 </div>
 
+                <!-- Section for updating the image -->
                 <div class="form-group mb-3">
                     <label class="control-label">Current Image</label>
                     @if (!string.IsNullOrEmpty(Model.ImageFilename))
                     {
+                       
                         <div class="mb-2">
                             <img src="~/images/@Model.ImageFilename" alt="Current Image" class="img-thumbnail" style="max-width: 200px" />
                         </div>
                     }
+                    <!-- Input for uploading a new image -->
                     <input type="file" name="imageFile" class="form-control" accept="image/*" />
                     <input type="hidden" asp-for="ImageFilename" />
                 </div>
 
+                
                 <div class="form-group">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
                     <a asp-controller="Discussion" asp-action="Index" class="btn btn-secondary">Back to List</a>
@@ -50,14 +63,17 @@
 }
 else
 {
+    
     <div class="alert alert-danger">
         You do not have permission to edit this discussion.
     </div>
+    
     <a asp-controller="Discussion" asp-action="Index" class="btn btn-secondary">Back to List</a>
 }
 
 @section Scripts {
     @{
+        <!-- Render the validation scripts -->
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }

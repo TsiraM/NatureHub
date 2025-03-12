@@ -36,15 +36,23 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//Map routes
+// Map routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.MapControllerRoute(
     name: "discussions",
     pattern: "Discussion/{action=Index}/{id?}",
     defaults: new { controller = "Discussion" });
+
+
+app.MapControllerRoute(
+    name: "comments",
+    pattern: "Comment/{action=Create}/{discussionId?}",
+    defaults: new { controller = "Comment" });
+
 
 app.Run();

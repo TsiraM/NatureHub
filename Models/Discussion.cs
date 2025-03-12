@@ -11,10 +11,13 @@ namespace NatureHub.Models
         public string? ImageFilename { get; set; } = null;
         public DateTime CreateDate { get; set; }
 
-        // Properties for user relationship
+        // Foreign key for the user who created the discussion
         public string? ApplicationUserId { get; set; }
+
+        // Navigation property to the user who created the discussion
         public ApplicationUser? ApplicationUser { get; set; }
 
+        // Collection of comments associated with the discussion
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

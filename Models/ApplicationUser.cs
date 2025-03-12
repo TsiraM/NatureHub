@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NatureHub.Models
 {
+    // Represents an application user, extending from IdentityUser for authentication
     public class ApplicationUser : IdentityUser
     {
         [Required]

@@ -1,0 +1,49 @@
+﻿@model NatureHub.Models.ApplicationUser
+
+<div class="container">
+    <div class="row">
+        <!-- Profile Info -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.ImageFilename))
+                    {
+                        <img src="~/images/@Model.ImageFilename" class="rounded-circle mb-3" style="width: 150px; height: 150px;" alt="Profile Picture" />
+                    }
+                    <h3>@Model.Name</h3>
+                    @if (!string.IsNullOrEmpty(Model.Location))
+                    {
+                        <p><i class="bi bi-geo-alt"></i> @Model.Location</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Discussions List -->
+        <div class="col-md-8">
+            <h4>Discussions</h4>
+
+            @if (ViewData["NoDiscussions"] != null)
+            {
+                <p>@ViewData["NoDiscussions"]</p>
+            }
+            else
+            {
+                @foreach (var discussion in Model.Discussions.OrderByDescending(d => d.CreateDate))
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>
+                                <a asp-action="GetDiscussion" asp-route-id="@discussion.DiscussionId">@discussion.Title</a>
+                            </h5>
+                            <div class="text-muted">
+                                <span class="badge bg-primary">@discussion.Comments.Count Comments</span>
+                                <span class="ms-2">@discussion.CreateDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

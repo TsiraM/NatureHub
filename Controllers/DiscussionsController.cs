@@ -8,7 +8,7 @@ using NatureHub.Models;
 
 namespace NatureHub.Controllers
 {
-    [Authorize]
+    [Authorize] // Restrict access to authenticated users
     public class DiscussionController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -46,6 +46,8 @@ namespace NatureHub.Controllers
             {
                 return NotFound();
             }
+
+            ViewBag.DiscussionId = id;
             return View(discussion);
         }
 
@@ -63,21 +65,48 @@ namespace NatureHub.Controllers
                 if (user != null)
                 {
                     discussion.ApplicationUserId = user.Id;
+
+                    // Handle image upload
                     if (imageFile != null && imageFile.Length > 0)
                     {
-                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-                        if (!Directory.Exists(uploadsFolder))
+                        try
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            // Validate file type and size (5MB max)
+                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                            var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                ModelState.AddModelError("ImageFile", "Invalid file type.");
+                                return View(discussion);
+                            }
+
+                            if (imageFile.Length > 5 * 1024 * 1024) 
+                            {
+                                ModelState.AddModelError("ImageFile", "File size exceeds the limit of 5MB.");
+                                return View(discussion);
+                            }
+
+                            // Save the uploaded file
+                            string uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                            if (!Directory.Exists(uploadsFolder))
+                            {
+                                Directory.CreateDirectory(uploadsFolder);
+                            }
+                            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await imageFile.CopyToAsync(fileStream);
+                            }
+                            discussion.ImageFilename = uniqueFileName;
                         }
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        catch (Exception ex)
                         {
-                            await imageFile.CopyToAsync(fileStream);
+                            ModelState.AddModelError("", $"Error uploading file: {ex.Message}");
+                            return View(discussion);
                         }
-                        discussion.ImageFilename = uniqueFileName;
                     }
+
                     discussion.CreateDate = DateTime.Now;
                     _context.Discussions.Add(discussion);
                     await _context.SaveChangesAsync();
@@ -90,10 +119,16 @@ namespace NatureHub.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var discussion = await _context.Discussions.FindAsync(id);
             var user = await _userManager.GetUserAsync(User);
+            var discussion = await _context.Discussions.FindAsync(id);
 
-            if (discussion == null || user == null || discussion.ApplicationUserId != user.Id)
+            if (discussion == null)
+            {
+                return NotFound();
+            }
+
+            // Ensure the user owns the discussion before editing
+            if (user == null || discussion.ApplicationUserId != user.Id)
             {
                 return Forbid();
             }
@@ -102,11 +137,51 @@ namespace NatureHub.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> Edit(int id, Discussion discussion)
+        {
+            if (id != discussion.DiscussionId)
+            {
+                return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || discussion.ApplicationUserId != user.Id)
+            {
+                return Forbid();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(discussion);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!DiscussionExists(discussion.DiscussionId))
+                    {
+                        return NotFound();
+                    }
+                    throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(discussion);
+        }
+
+        private bool DiscussionExists(int discussionId)
+        {
+            throw new NotImplementedException(); // Placeholder for existence check
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
             var discussion = await _context.Discussions.FindAsync(id);
             var user = await _userManager.GetUserAsync(User);
 
+            // Ensure only the owner can delete the discussion
             if (discussion == null || user == null || discussion.ApplicationUserId != user.Id)
             {
                 return Forbid();
@@ -115,6 +190,37 @@ namespace NatureHub.Controllers
             _context.Discussions.Remove(discussion);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddComment(int discussionId, string content)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var discussion = await _context.Discussions.FindAsync(discussionId);
+            if (discussion == null)
+            {
+                return NotFound();
+            }
+
+            // Create and add a new comment
+            var comment = new Comment
+            {
+                Content = content,
+                DiscussionId = discussionId,
+                ApplicationUserId = user.Id,
+                CreateDate = DateTime.Now
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            // Redirect back to the discussion details page
+            return RedirectToAction("Details", new { id = discussionId });
         }
     }
 }
